@@ -7,6 +7,7 @@ import {
   text
 } from "drizzle-orm/mysql-core"
 import type { AdapterAccount } from "@auth/core/adapters"
+import { relations } from "drizzle-orm"
 
 export const users = mysqlTable("users", {
   id: varchar("id", { length: 255 }).notNull().primaryKey(),
@@ -56,7 +57,7 @@ export const verificationTokens = mysqlTable(
   })
 )
 
-export const link = mysqlTable('link', {
+export const links = mysqlTable('links', {
   id: varchar("id", { length: 255 }).notNull().primaryKey(),
   userId: varchar("userId", { length: 255 }).notNull(),
   url: varchar("url", { length: 3000 }).notNull(),
@@ -64,3 +65,29 @@ export const link = mysqlTable('link', {
   shortUrl: varchar("shortUrl", { length: 12 }).notNull(),
   visits: int("visits").notNull().default(0),
 })
+
+export const userRelations = relations(users, ({ many }) => ({
+  links: many(links),
+  accounts: many(accounts),
+}))
+
+export const accountRelations = relations(accounts, ({ one }) => ({
+  user: one(users, {
+    fields: [accounts.userId],
+    references: [users.id],
+  }),
+}))
+
+export const sessionRelations = relations(sessions, ({ one }) => ({
+  user: one(users, {
+    fields: [sessions.userId],
+    references: [users.id],
+  }),
+}))
+
+export const linkRelations = relations(links, ({ one }) => ({
+  user: one(users, {
+    fields: [links.userId],
+    references: [users.id],
+  })
+}))
